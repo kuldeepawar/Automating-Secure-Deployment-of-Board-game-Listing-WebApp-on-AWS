@@ -16,6 +16,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    # 🛡️ Add OWASP Dependency-Check
+    - name: Install OWASP Dependency-Check
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y unzip
+        curl -L -o dependency-check.zip https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/dependency-check-8.4.0-release.zip
+        unzip dependency-check.zip -d dependency-check
+        sudo mv dependency-check /opt/dependency-check
+
+    - name: Run OWASP Dependency-Check
+      run: |
+        /opt/dependency-check/bin/dependency-check.sh --project "BoardGameListingApp" --scan .
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
