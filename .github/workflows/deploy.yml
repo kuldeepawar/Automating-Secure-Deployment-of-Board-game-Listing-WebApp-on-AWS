@@ -99,6 +99,9 @@ jobs:
           sonar-scanner -X
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORGANIZATION: "kuldeepawar"  # Your SonarCloud organization name
+          SONAR_PROJECT_KEY: "kuldeepawar_Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS"  # Your SonarCloud project key
+          SONAR_PROJECT_NAME: "Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS"  # Your SonarCloud project name
 
       # Step 13: Terraform Apply
       - name: Terraform Apply
