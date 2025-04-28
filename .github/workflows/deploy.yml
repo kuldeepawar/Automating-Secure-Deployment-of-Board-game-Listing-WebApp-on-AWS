@@ -69,34 +69,16 @@ jobs:
       - name: Terraform Plan
         run: terraform plan
 
-      # Step 10: Check if BoardGame directory exists (to avoid sonar-scanner crash)
-      - name: Check if BoardGame directory exists
-        run: ls -al ./BoardGame
-
-      # Step 11: SonarCloud Scan
+      # Step 10: SonarCloud Scan (using official action)
       - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2.2.0
+        with:
+          projectBaseDir: ./BoardGame
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
           SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
-        run: |
-          if [ -z "$SONAR_TOKEN" ] || [ -z "$SONAR_PROJECT_KEY" ] || [ -z "$SONAR_ORGANIZATION" ]; then
-            echo "SonarCloud environment variables are missing!"
-            exit 1
-          fi
-          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
-          unzip sonar-scanner.zip
-          export PATH=$PATH:$(pwd)/sonar-scanner-5.0.1.3006/bin
-          export SONAR_SCANNER_OPTS="-Xmx512m"
-          sonar-scanner -X \
-            -Dsonar.projectKey=$SONAR_PROJECT_KEY \
-            -Dsonar.organization=$SONAR_ORGANIZATION \
-            -Dsonar.sources=./BoardGame \
-            -Dsonar.projectName="BoardGame Web App" \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.projectBaseDir=.
 
-      # Step 12: Terraform Apply
+      # Step 11: Terraform Apply
       - name: Terraform Apply
         run: terraform apply -auto-approve
