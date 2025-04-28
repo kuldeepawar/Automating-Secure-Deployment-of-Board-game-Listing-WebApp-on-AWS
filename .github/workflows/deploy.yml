@@ -8,35 +8,28 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
-    environment:
-      name: production
+    environment: production
 
     steps:
-    # Step 1: Checkout code
+    # Step 1: Checkout Code
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Step 2: Install OWASP Dependency-Check and unzip BoardGame.zip
-    - name: Install Required Packages and Unzip Code
+    # Step 2: Install Required Packages
+    - name: Install Required Packages
       run: |
         sudo apt-get update
-        sudo apt-get install -y unzip curl
-        unzip BoardGame.zip -d BoardGameApp
+        sudo apt-get install -y unzip curl openjdk-17-jdk maven
 
-    # Step 3: Install OWASP Dependency-Check
-    - name: Install OWASP Dependency-Check
+    # Step 3: OWASP Dependency Check
+    - name: Install and Run OWASP Dependency-Check
       run: |
         curl -L -o dependency-check.zip https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/dependency-check-8.4.0-release.zip
         unzip dependency-check.zip
         sudo mv dependency-check /opt/dependency-check
+        /opt/dependency-check/bin/dependency-check.sh --project "BoardGameListingApp" --scan .
 
-    # Step 4: Run OWASP Dependency-Check
-    - name: Run OWASP Dependency-Check
-      run: |
-        /opt/dependency-check/bin/dependency-check.sh --project "BoardGameListingApp" --scan ./BoardGameApp
-
-    # Step 5: Configure AWS credentials
+    # Step 4: Configure AWS Credentials
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
@@ -44,21 +37,63 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    # Step 6: Set up Terraform
+    # Step 5: Terraform Setup
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: 1.5.7
 
-    # Step 7: Terraform Init
+    # Step 6: Terraform Init
     - name: Terraform Init
       run: terraform init
 
-    # Step 8: Terraform Plan
+    # Step 7: Terraform Plan
     - name: Terraform Plan
       run: terraform plan
 
-    # Step 9: SonarQube Scan
+    # Step 8: Terraform Apply
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+
+    # Step 9: Build Spring Boot Application
+    - name: Build the BoardGame App
+      run: |
+        ./mvnw clean package
+      working-directory: ./BoardGameApp
+
+    # Step 10: Deploy JAR to EC2 via SSH
+    - name: Deploy Application to EC2
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.EC2_PUBLIC_IP }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          pkill -f 'java' || true
+          mkdir -p ~/app
+          rm -rf ~/app/*
+          exit 0
+
+    - name: Copy JAR to EC2
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.EC2_PUBLIC_IP }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        source: ./BoardGameApp/target/*.jar
+        target: ~/app/
+
+    - name: Start Application on EC2
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.EC2_PUBLIC_IP }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          cd ~/app
+          nohup java -jar *.jar > app.log 2>&1 &
+    
+    # Step 11: SonarQube Scan
     - name: SonarQube Scan
       uses: sonarsource/sonarcloud-github-action@master
       with:
@@ -66,7 +101,3 @@ jobs:
         projectKey: ${{ secrets.SONAR_PROJECT_KEY }}
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-    # Step 10: Terraform Apply
-    - name: Terraform Apply
-      run: terraform apply -auto-approve
