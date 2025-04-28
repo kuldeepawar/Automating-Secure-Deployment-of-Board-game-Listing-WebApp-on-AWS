@@ -75,6 +75,13 @@ jobs:
           echo "Organization: ${{ secrets.SONAR_ORGANIZATION }}"
           echo "Project Key: ${{ secrets.SONAR_PROJECT_KEY }}"
 
+      # step 11: SonarCloud Scan(debug)
+      - name: SonarCloud Scan (Debug)
+        run: |
+          sonar-scanner -X
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       # Step 11: SonarCloud Scan (Fixed version)
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2.2.0
