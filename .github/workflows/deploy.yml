@@ -17,12 +17,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Install Required Packages and Unzip Code
-      - name: Install Required Packages and Unzip Code
+      # Step 2: Install Required Packages
+      - name: Install Required Packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y unzip curl
-          unzip BoardGame.zip -d BoardGameApp
+          sudo apt-get install -y curl unzip
 
       # Step 3: Install OWASP Dependency-Check
       - name: Install OWASP Dependency-Check
@@ -36,7 +35,7 @@ jobs:
         run: |
           /opt/dependency-check/bin/dependency-check.sh \
             --project "BoardGameListingApp" \
-            --scan ./BoardGameApp \
+            --scan ./BoardGame \
             --disableAssembly \
             --format HTML \
             --out dependency-check-report
@@ -87,7 +86,7 @@ jobs:
           sonar-scanner -X \
             -Dsonar.projectKey=$SONAR_PROJECT_KEY \
             -Dsonar.organization=$SONAR_ORGANIZATION \
-            -Dsonar.sources=./BoardGameApp \
+            -Dsonar.sources=./BoardGame \
             -Dsonar.projectName="BoardGame Web App" \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN \
