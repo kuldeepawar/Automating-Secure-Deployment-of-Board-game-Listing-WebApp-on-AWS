@@ -69,7 +69,7 @@ jobs:
       - name: Terraform Plan
         run: terraform plan
 
-      # Step 10: SonarCloud Scan (Corrected version)
+      # Step 10: SonarCloud Scan (Fixed version)
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2.2.0
         with:
