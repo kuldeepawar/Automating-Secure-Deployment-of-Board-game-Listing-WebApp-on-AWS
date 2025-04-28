@@ -78,8 +78,19 @@ jobs:
       # Step 11: Install SonarScanner
       - name: Install SonarScanner
         run: |
-          curl -sSLo sonar-scanner.zip https://github.com/SonarSource/sonar-scanner-cli/releases/download/4.7.0.2747/sonar-scanner-4.7.0.2747-linux.zip
+          # Download the SonarScanner ZIP file
+          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
+
+          # Verify that the file was downloaded successfully
+          if [ ! -f sonar-scanner.zip ]; then
+            echo "SonarScanner download failed!"
+            exit 1
+          fi
+
+          # Unzip the downloaded file
           unzip sonar-scanner.zip -d $HOME/sonar-scanner
+
+          # Add sonar-scanner to the PATH
           echo "$HOME/sonar-scanner/sonar-scanner-4.7.0.2747-linux/bin" >> $GITHUB_PATH
 
       # Step 12: SonarCloud Scan
