@@ -31,7 +31,7 @@ jobs:
         unzip dependency-check.zip
         sudo mv dependency-check /opt/dependency-check
 
-    # Step 4: Run OWASP Dependency-Check (fixed version)
+    # Step 4: Run OWASP Dependency-Check
     - name: Run OWASP Dependency-Check
       run: |
         /opt/dependency-check/bin/dependency-check.sh \
@@ -70,14 +70,15 @@ jobs:
     - name: Terraform Plan
       run: terraform plan
 
-    # Step 10: SonarQube Scan
-    - name: SonarQube Scan
-      uses: sonarsource/sonarcloud-github-action@master
+    # Step 10: SonarCloud Scan
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@v2.0.2
       with:
-        organization: ${{ secrets.SONAR_ORGANIZATION }}
-        projectKey: ${{ secrets.SONAR_PROJECT_KEY }}
+        projectBaseDir: ./BoardGameApp
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+        SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
 
     # Step 11: Terraform Apply
     - name: Terraform Apply
