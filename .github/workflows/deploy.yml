@@ -69,7 +69,11 @@ jobs:
       - name: Terraform Plan
         run: terraform plan
 
-      # Step 10: SonarCloud Scan 
+      # Step 10: Check if BoardGame directory exists (to avoid sonar-scanner crash)
+      - name: Check if BoardGame directory exists
+        run: ls -al ./BoardGame
+
+      # Step 11: SonarCloud Scan
       - name: SonarCloud Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -83,6 +87,7 @@ jobs:
           curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
           unzip sonar-scanner.zip
           export PATH=$PATH:$(pwd)/sonar-scanner-5.0.1.3006/bin
+          export SONAR_SCANNER_OPTS="-Xmx512m"
           sonar-scanner -X \
             -Dsonar.projectKey=$SONAR_PROJECT_KEY \
             -Dsonar.organization=$SONAR_ORGANIZATION \
@@ -90,8 +95,8 @@ jobs:
             -Dsonar.projectName="BoardGame Web App" \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.verbose=true
+            -Dsonar.projectBaseDir=.
 
-      # Step 11: Terraform Apply
+      # Step 12: Terraform Apply
       - name: Terraform Apply
         run: terraform apply -auto-approve
