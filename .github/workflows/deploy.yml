@@ -69,15 +69,15 @@ jobs:
       - name: Terraform Plan
         run: terraform plan
 
-      # Step 10: SonarCloud Scan (using official action)
+      # Step 10: SonarCloud Scan (Corrected version)
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2.2.0
         with:
+          organization: ${{ secrets.SONAR_ORGANIZATION }}
+          projectKey: ${{ secrets.SONAR_PROJECT_KEY }}
           projectBaseDir: ./BoardGame
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-          SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
 
       # Step 11: Terraform Apply
       - name: Terraform Apply
