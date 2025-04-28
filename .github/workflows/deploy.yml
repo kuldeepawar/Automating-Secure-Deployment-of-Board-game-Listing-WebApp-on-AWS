@@ -75,23 +75,20 @@ jobs:
           echo "Organization: ${{ secrets.SONAR_ORGANIZATION }}"
           echo "Project Key: ${{ secrets.SONAR_PROJECT_KEY }}"
 
-      # step 11: SonarCloud Scan(debug)
-      - name: SonarCloud Scan (Debug)
+      # Step 11: Install SonarScanner
+      - name: Install SonarScanner
+        run: |
+          curl -sSLo sonar-scanner.zip https://github.com/SonarSource/sonar-scanner-cli/releases/download/4.7.0.2747/sonar-scanner-4.7.0.2747-linux.zip
+          unzip sonar-scanner.zip -d $HOME/sonar-scanner
+          echo "$HOME/sonar-scanner/sonar-scanner-4.7.0.2747-linux/bin" >> $GITHUB_PATH
+
+      # Step 12: SonarCloud Scan
+      - name: SonarCloud Scan
         run: |
           sonar-scanner -X
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # Step 11: SonarCloud Scan (Fixed version)
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2.2.0
-        with:
-          organization: ${{ secrets.SONAR_ORGANIZATION }}
-          projectKey: ${{ secrets.SONAR_PROJECT_KEY }}
-          projectBaseDir: ./BoardGame
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      # Step 12: Terraform Apply
+      # Step 13: Terraform Apply
       - name: Terraform Apply
         run: terraform apply -auto-approve
