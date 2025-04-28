@@ -69,6 +69,11 @@ jobs:
       - name: Terraform Plan
         run: terraform plan
 
+      - name: Debug Secrets (Test)
+        run: |
+          echo "Organization: ${{ secrets.SONAR_ORGANIZATION }}"
+          echo "Project Key: ${{ secrets.SONAR_PROJECT_KEY }}"
+
       # Step 10: SonarCloud Scan (Fixed version)
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2.2.0
