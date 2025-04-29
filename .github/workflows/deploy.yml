@@ -130,3 +130,9 @@ jobs:
           mvn clean package
           pkill -f 'java -jar' || true
           nohup java -jar target/*.jar > app.log 2>&1 &
+
+          # Wait for a few seconds to allow app to start
+          sleep 20
+
+          # Check if the app is running on port 8080
+          curl -I http://localhost:8080 || (echo "App failed to start!" && exit 1)
