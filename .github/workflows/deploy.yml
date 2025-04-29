@@ -47,6 +47,12 @@ jobs:
           name: dependency-check-report
           path: dependency-check-report
 
+      # Step 6: Run Trivy File System Vulnerability Scan
+      - name: Run Trivy File System Vulnerability Scan
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          trivy fs --severity CRITICAL,HIGH .
+          
       # Step 6: Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
