@@ -95,13 +95,13 @@ jobs:
 
       # Step 12: SonarCloud Scan
       - name: SonarCloud Scan
-        run: |
-          sonar-scanner -X
+        uses: SonarSource/sonarcloud-github-action@v2.2.0
+        with:
+          projectBaseDir: ./BoardGame
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_ORGANIZATION: "kuldeepawar"  # Your SonarCloud organization name
-          SONAR_PROJECT_KEY: "kuldeepawar_Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS"  # Your SonarCloud project key
-          SONAR_PROJECT_NAME: "Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS"  # Your SonarCloud project name
+          SONAR_ORGANIZATION: "kuldeepawar"  
+          SONAR_PROJECT_KEY: "kuldeepawar_Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS"  
 
       # Step 13: Terraform Apply
       - name: Terraform Apply
