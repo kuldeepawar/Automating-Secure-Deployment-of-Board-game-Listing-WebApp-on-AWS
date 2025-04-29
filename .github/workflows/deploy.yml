@@ -112,3 +112,21 @@ jobs:
       # Step 13: Terraform Apply
       - name: Terraform Apply
         run: terraform apply -auto-approve
+
+
+      # step 14: Deploy Spring Boot App via SSH
+      - name: Deploy App to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+          # Pull latest code or copy jar
+          cd /home/ec2-user
+          sudo yum install -y git java-17-openjdk maven
+          git clone https://github.com/DevOpsInstituteMumbai-wq/Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS.git app || cd app && git pull
+          cd app/BoardGame
+          mvn clean package
+          pkill -f 'java -jar' || true
+          nohup java -jar target/*.jar > app.log 2>&1 &
