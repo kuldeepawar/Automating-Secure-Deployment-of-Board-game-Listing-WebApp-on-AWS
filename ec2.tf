@@ -25,8 +25,6 @@ resource "aws_security_group" "web_sg" {
   }
 }
 
-
-
 resource "aws_instance" "app_server" {
   ami                         = "ami-084568db4383264d4" # Ubuntu 22.04 in us-east-1
   instance_type               = "t2.micro"
@@ -49,12 +47,7 @@ resource "aws_instance" "app_server" {
               EOF
 }
 
-# Allocate and associate an Elastic IP
 resource "aws_eip" "app_eip" {
   instance = aws_instance.app_server.id
   vpc      = true
-}
-
-output "public_ip" {
-  value = aws_eip.app_eip.public_ip
 }
