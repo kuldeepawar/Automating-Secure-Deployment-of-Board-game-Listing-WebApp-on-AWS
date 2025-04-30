@@ -52,8 +52,8 @@ jobs:
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           trivy fs --severity CRITICAL,HIGH .
-          
-      # Step 6: Configure AWS credentials
+
+      # Step 7: Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -61,60 +61,48 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      # Step 7: Set up Terraform
+      # Step 8: Set up Terraform
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.5.7
 
-      # Step 8: Terraform Init
+      # Step 9: Terraform Init
       - name: Terraform Init
         run: terraform init
 
-      # Step 9: Terraform Plan
+      # Step 10: Terraform Plan
       - name: Terraform Plan
         run: terraform plan
 
-      # Step 10: Debugging Secrets (Check values of SONAR_ORG and SONAR_PROJECT_KEY)
+      # Step 11: Debugging Secrets (Check values of SONAR_ORG and SONAR_PROJECT_KEY)
       - name: Debug Secrets (Test)
         run: |
           echo "Organization: ${{ secrets.SONAR_ORGANIZATION }}"
           echo "Project Key: ${{ secrets.SONAR_PROJECT_KEY }}"
 
-      # Step 11: Install SonarScanner
+      # Step 12: Install SonarScanner
       - name: Install SonarScanner
         run: |
-          # Download the SonarScanner ZIP file
           curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
-
-          # Verify that the file was downloaded successfully
-          if [ ! -f sonar-scanner.zip ]; then
-            echo "SonarScanner download failed!"
-            exit 1
-          fi
-
-          # Unzip the downloaded file
           unzip sonar-scanner.zip -d $HOME/sonar-scanner
-
-          # Add sonar-scanner to the PATH
           echo "$HOME/sonar-scanner/sonar-scanner-4.7.0.2747-linux/bin" >> $GITHUB_PATH
 
-      # Step 12: SonarCloud Scan
+      # Step 13: SonarCloud Scan
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2.2.0
         with:
           projectBaseDir: ./BoardGame
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_ORGANIZATION: "kuldeepawar"  
-          SONAR_PROJECT_KEY: "kuldeepawar_Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS"  
+          SONAR_ORGANIZATION: "kuldeepawar"
+          SONAR_PROJECT_KEY: "kuldeepawar_Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS"
 
-      # Step 13: Terraform Apply
+      # Step 14: Terraform Apply
       - name: Terraform Apply
         run: terraform apply -auto-approve
 
-
-      # step 14: Deploy Spring Boot App via SSH
+      # Step 15: Deploy Spring Boot App via SSH
       - name: Deploy App to EC2
         uses: appleboy/ssh-action@master
         with:
@@ -122,17 +110,17 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-          # Pull latest code or copy jar
-          cd /home/ec2-user
-          sudo yum install -y git java-17-openjdk maven
-          git clone https://github.com/DevOpsInstituteMumbai-wq/Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS.git app || cd app && git pull
-          cd app/BoardGame
-          mvn clean package
-          pkill -f 'java -jar' || true
-          nohup java -jar target/*.jar > app.log 2>&1 &
+            # Pull latest code or copy jar
+            cd /home/ec2-user
+            sudo yum install -y git java-17-openjdk maven
+            git clone https://github.com/DevOpsInstituteMumbai-wq/Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS.git app || (cd app && git pull)
+            cd app/BoardGame
+            mvn clean package
+            pkill -f 'java -jar' || true
+            nohup java -jar target/*.jar > app.log 2>&1 &
 
-          # Wait for a few seconds to allow app to start
-          sleep 20
+            # Wait for a few seconds to allow app to start
+            sleep 20
 
-          # Check if the app is running on port 8080
-          curl -I http://localhost:8080 || (echo "App failed to start!" && exit 1)
+            # Check if the app is running on port 8080
+            curl -I http://localhost:8080 || (echo "App failed to start!" && exit 1)
