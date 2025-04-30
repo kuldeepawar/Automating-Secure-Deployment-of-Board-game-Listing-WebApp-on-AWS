@@ -25,12 +25,15 @@ resource "aws_security_group" "web_sg" {
   }
 }
 
+
+
 resource "aws_instance" "app_server" {
-  ami                    = "ami-084568db4383264d4" # Ubuntu 22.04 for us-east-1
-  instance_type          = "t2.micro"
-  subnet_id              = aws_subnet.public.id
-  vpc_security_group_ids = [aws_security_group.web_sg.id]
-  associate_public_ip_address = true
+  ami                         = "ami-084568db4383264d4" # Ubuntu 22.04 in us-east-1
+  instance_type               = "t2.micro"
+  subnet_id                   = aws_subnet.public.id
+  vpc_security_group_ids      = [aws_security_group.web_sg.id]
+  key_name                    = aws_key_pair.deployer.key_name
+  associate_public_ip_address = false # Elastic IP will be attached
 
   tags = {
     Name = "Boardgame-App-Server"
@@ -44,4 +47,14 @@ resource "aws_instance" "app_server" {
               cd Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS
               ./mvnw spring-boot:run
               EOF
+}
+
+# Allocate and associate an Elastic IP
+resource "aws_eip" "app_eip" {
+  instance = aws_instance.app_server.id
+  vpc      = true
+}
+
+output "public_ip" {
+  value = aws_eip.app_eip.public_ip
 }
