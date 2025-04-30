@@ -25,10 +25,7 @@ resource "aws_security_group" "web_sg" {
   }
 }
 
-resource "aws_key_pair" "deployer" {
-  key_name   = "deployer-key"
-  public_key = file("~/.ssh/deployer-key.pub") # Adjust path to your actual public key
-}
+
 
 
 resource "aws_instance" "app_server" {
