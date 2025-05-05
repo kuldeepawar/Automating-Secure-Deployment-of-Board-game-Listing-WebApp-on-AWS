@@ -109,18 +109,40 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script_stop: true
+          timeout: 10m
           script: |
-            # Pull latest code or copy jar
-            cd /home/ec2-user
+            echo "Starting Deployment on EC2..."
+
+            # Ensure required packages are installed
+            sudo yum update -y
             sudo yum install -y git java-17-openjdk maven
-            git clone https://github.com/DevOpsInstituteMumbai-wq/Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS.git app || (cd app && git pull)
-            cd app/BoardGame
-            mvn clean package
+
+            # Clone or update the repo
+            cd /home/ec2-user
+            if [ ! -d "app" ]; then
+              git clone https://github.com/DevOpsInstituteMumbai-wq/Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS.git app
+            else
+              cd app
+              git pull
+            fi
+
+            # Build the Spring Boot App
+            cd /home/ec2-user/app/BoardGame
+            mvn clean package -DskipTests
+
+            # Kill any existing app process
             pkill -f 'java -jar' || true
+
+            # Start the app in background
             nohup java -jar target/*.jar > app.log 2>&1 &
 
-            # Wait for a few seconds to allow app to start
+            # Wait and verify the app is running
             sleep 20
-
-            # Check if the app is running on port 8080
-            curl -I http://localhost:8080 || (echo "App failed to start!" && exit 1)
+            if curl -sSf http://localhost:8080 > /dev/null; then
+              echo "✅ App started successfully!"
+            else
+              echo "❌ App failed to start!"
+              exit 1
+            fi
