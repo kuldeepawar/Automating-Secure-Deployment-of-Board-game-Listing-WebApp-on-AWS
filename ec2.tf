@@ -50,7 +50,7 @@ resource "aws_instance" "app_server" {
               EOF
 }
 
-resource "aws_eip" "app_eip" {
-  instance = aws_instance.app_server.id
-  vpc      = true
+resource "aws_eip_association" "eip_assoc" {
+  instance_id   = aws_instance.boardgame_app_server.id
+  allocation_id = "eipalloc-04212c7d590ca0944"  # Allocation ID from your screenshot
 }
