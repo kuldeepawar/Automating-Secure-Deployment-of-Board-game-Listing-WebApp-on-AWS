@@ -65,33 +65,16 @@ jobs:
       - name: Terraform Plan
         run: terraform plan
 
-      - name: Debug Secrets (Test)
-        run: |
-          echo "Organization: ${{ secrets.SONAR_ORGANIZATION }}"
-          echo "Project Key: ${{ secrets.SONAR_PROJECT_KEY }}"
-
-      - name: Install SonarScanner
-        run: |
-          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
-          unzip sonar-scanner.zip -d $HOME/sonar-scanner
-          echo "$HOME/sonar-scanner/sonar-scanner-4.7.0.2747-linux/bin" >> $GITHUB_PATH
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2.2.0
-        with:
-          projectBaseDir: ./BoardGame
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_ORGANIZATION: "kuldeepawar"
-          SONAR_PROJECT_KEY: "kuldeepawar_Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS"
-
       - name: Terraform Apply
         run: terraform apply -auto-approve
 
       - name: Get EC2 Public IP from Terraform Output
         id: tf_output
         run: |
-          echo "ip=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
+          echo "ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
+
+      - name: Wait for EC2 to become available
+        run: sleep 60
 
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@master
