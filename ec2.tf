@@ -50,14 +50,16 @@ resource "aws_instance" "app_server" {
               EOF
 }
 
-resource "aws_eip" "static_eip" {
+
+# Lookup existing allocated Elastic IP
+data "aws_eip" "static_eip" {
   public_ip = "34.226.133.53"
-  vpc       = true
 }
 
+# Associate the existing EIP with the EC2 instance
 resource "aws_eip_association" "eip_assoc" {
   instance_id   = aws_instance.app_server.id
-  allocation_id = aws_eip.static_eip.id
+  allocation_id = data.aws_eip.static_eip.id
 }
 
 
