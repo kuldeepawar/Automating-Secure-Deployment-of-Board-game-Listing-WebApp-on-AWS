@@ -51,9 +51,9 @@ resource "aws_instance" "app_server" {
 }
 
 resource "aws_eip" "static_eip" {
-  public_ip = "34.226.133.53"
-  vpc       = true
+  vpc = true
 }
+
 
 resource "aws_eip_association" "eip_assoc" {
   instance_id   = aws_instance.app_server.id
