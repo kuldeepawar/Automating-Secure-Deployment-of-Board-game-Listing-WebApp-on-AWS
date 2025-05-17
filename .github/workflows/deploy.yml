@@ -109,7 +109,8 @@ jobs:
 
             pkill -f 'java -jar' || true
 
-            nohup java -jar target/*.jar > app.log 2>&1 &
+            nohup java -jar target/*.jar > app.log 2>&1 < /dev/null &
+            disown
 
             sleep 20
             if curl -sSf http://localhost:8080 > /dev/null; then
