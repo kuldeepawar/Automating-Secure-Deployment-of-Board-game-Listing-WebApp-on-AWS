@@ -80,18 +80,16 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ steps.tf_output.outputs.ip }}
-          username: ubuntu
+          username: ubuntu             # 🔁 was: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
             echo "Starting Deployment on EC2..."
 
-            # Install required packages
-            sudo yum update -y
-            sudo yum install -y git java-17-openjdk maven
+            sudo apt-get update
+            sudo apt-get install -y git openjdk-17-jdk maven
 
-            # Clone or update the app
-            cd /home/ec2-user
+            cd /home/ubuntu
             if [ ! -d "app" ]; then
               git clone https://github.com/DevOpsInstituteMumbai-wq/Automating-Secure-Deployment-of-Board-game-Listing-WebApp-on-AWS.git app
             else
@@ -99,14 +97,11 @@ jobs:
               git pull
             fi
 
-            # Build the app
-            cd /home/ec2-user/app/BoardGame
+            cd /home/ubuntu/app/BoardGame
             mvn clean package -DskipTests
 
-            # Stop any running app
             pkill -f 'java -jar' || true
 
-            # Start the app
             nohup java -jar target/*.jar > app.log 2>&1 &
 
             sleep 20
