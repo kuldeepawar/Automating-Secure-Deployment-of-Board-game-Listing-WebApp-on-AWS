@@ -110,6 +110,7 @@ jobs:
             pkill -f 'java -jar' || true
 
             nohup java -jar target/*.jar > app.log 2>&1 < /dev/null &
+            echo $! > app.pid
             disown
 
             sleep 20
