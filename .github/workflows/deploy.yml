@@ -111,8 +111,13 @@ jobs:
             cd /home/ubuntu/app/BoardGame
             mvn clean package -DskipTests
 
-            echo "🛑 Stopping any running instance..."
-            pkill -f 'java -jar' || true
+            echo "🛑 Stopping any running app..."
+            if pgrep -f 'java -jar'; then
+              pkill -f 'java -jar'
+              echo "✔️ App process killed."
+            else
+              echo "ℹ️ No existing app process found."
+            fi
 
             echo "🚀 Starting the app in background..."
             nohup java -jar target/*.jar > app.log 2>&1 & disown
