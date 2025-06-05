@@ -20,7 +20,7 @@ jobs:
       - name: Install Required Packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl unzip
+          sudo apt-get install -y curl unzip openssh-client
 
       - name: Install OWASP Dependency-Check
         run: |
@@ -94,7 +94,7 @@ jobs:
 
             echo "📦 Installing dependencies..."
             sudo apt-get update
-            sudo apt-get install -y git openjdk-17-jdk maven
+            sudo apt-get install -y git openjdk-17-jdk maven net-tools
 
             echo "📁 Cloning or updating the repository..."
             cd /home/ubuntu
@@ -107,29 +107,54 @@ jobs:
 
             echo "🏗️ Building the application with Maven..."
             cd /home/ubuntu/app/BoardGame
-            mvn clean package -DskipTests -X
+
+            echo "🔍 Resolving dependencies..."
+            mvn dependency:resolve -X || {
+              echo "❌ Dependency resolution failed!"
+              exit 1
+            }
+
+            echo "📦 Packaging the application..."
+            mvn clean package -DskipTests -X || {
+              echo "❌ Maven build failed!"
+              exit 1
+            }
 
             echo "🛑 Killing any process using port 8080..."
             sudo fuser -k 8080/tcp || echo "ℹ️ No process running on port 8080"
 
+            echo "🔍 Checking if port 8080 is free..."
+            if sudo netstat -tuln | grep ':8080'; then
+              echo "⚠️ Port 8080 still in use after kill!"
+              exit 1
+            fi
+
             echo "🚀 Running app in background..."
             nohup java -jar target/*.jar > app.log 2>&1 & disown
 
-            echo "⏱️ Waiting 60 seconds for app to initialize..."
-            sleep 60
+            echo "⏱️ Waiting 120 seconds for app to initialize..."
+            sleep 120
 
             echo "🔍 Verifying app startup..."
             if curl -sSf http://localhost:8080 > /dev/null; then
               echo "✅ App started successfully!"
             else
-              echo "❌ App failed to start! Showing app.log..."
-              cat app.log
+              echo "❌ App failed to start! Showing debug info..."
+              sudo netstat -tuln | grep ':8080' || echo "ℹ️ Nothing bound to 8080"
+              echo "🪵 Showing last 100 lines from app.log:"
+              tail -n 100 app.log
               exit 1
             fi
+
+      - name: Download app.log from EC2
+        if: always()
+        run: |
+          mkdir -p logs
+          scp -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} ubuntu@${{ steps.tf_output.outputs.ip }}:/home/ubuntu/app/BoardGame/app.log logs/
 
       - name: Upload app.log if deployment fails
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: app-log
-          path: /home/ubuntu/app/BoardGame/app.log
+          path: logs/app.log
